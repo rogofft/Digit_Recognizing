@@ -20,8 +20,6 @@ if any(arg == '--debug' for arg in sys.argv):
 else:
     Debug = False
 
-print(sys.argv)
-
 # Neural Network Setup
 print('Using ' + str(device))
 net = CNN()
