@@ -1,5 +1,5 @@
 # This is a pet-project for recognizing handwritten digits on video stream.
-# Used PyTorch, OpenCV, NumPy, scikit-learn, etc...
+# Used PyTorch, OpenCV, NumPy, etc...
 
 import cv2
 import torch
@@ -11,8 +11,7 @@ import camstream
 import image_correction as imcor
 import image_transformer
 import digit_founder
-import neuralnetwork
-from neuralnetwork import CNN, device
+from model import get_model, device
 
 # parsing arguments for --debug
 if any(arg == '--debug' for arg in sys.argv):
@@ -22,24 +21,14 @@ else:
 
 # Neural Network Setup
 print('Using ' + str(device))
-net = CNN()
+net = get_model()
 # Load weights from fitted net
-net_path = 'net/net_config.ptn'
+net_path = 'model/model_config.ptn'
 if os.path.isfile(net_path):
     net.load_state_dict(torch.load(net_path))
 else:
     print('Neural Network not fitted!')
-net = net.to(neuralnetwork.device)
-
-# Fitting the CNN
-'''import torchvision
-from torchvision import transforms
-data_train = torchvision.datasets.MNIST('data/train/', train=True, download=True, transform=transforms.ToTensor())
-data_test = torchvision.datasets.MNIST('data/test/', train=False, download=True, transform=transforms.ToTensor())
-print('Start fitting...')
-_ = net.fit(data_train, data_test, epochs=10, lr=0.0001, batch_size=10)
-# Save new weights
-torch.save(net.state_dict(), net_path)'''
+net.eval()
 
 # Create windows
 cv2.namedWindow('origin', cv2.WINDOW_NORMAL)
@@ -49,7 +38,7 @@ if Debug:
     cv2.namedWindow('debug_Transformer', cv2.WINDOW_AUTOSIZE)
 
 # Video capture
-cam = camstream.CamStream(src=0, height=1280, width=720).start()
+cam = camstream.CamStream(src=0).start()
 # Class for finding contours
 founder = digit_founder.DigitFounder(debug=Debug)
 # Class for transform images to neural network format
@@ -67,6 +56,7 @@ while cv2.getWindowProperty('origin', 0) >= 0:
     # corrected_img = imcor.linear_correction_bgr(img)
     # corrected_img = imcor.gamma_corr(img, 2.2)
     # corrected_img = imcor.retinex(img, 50.)
+
     corrected_img = cv2.medianBlur(corrected_img, 5)
 
     # Take coordinates of digits on image
@@ -81,7 +71,8 @@ while cv2.getWindowProperty('origin', 0) >= 0:
     # Check digit_tensor not None
     if digit_tensor is not None:
         # use CNN to predict digit
-        predictions = net.predict(digit_tensor.to(device))
+        with torch.no_grad():
+            predictions = net.predict(digit_tensor.to(device))
 
         # visualize all what we doing
         for ((x, y, w, h), prediction) in zip(digit_coords, predictions):

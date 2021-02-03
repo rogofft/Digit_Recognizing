@@ -10,7 +10,7 @@ class ImageTransformer:
         self.debug_img = None
 
     def transform(self, *imgs, inversion=False):
-        """ Transform N bgr-images to grayscale [N, 1, 28, 28] float pytorch tensor """
+        """ Transform N bgr-images to grayscale [N, 1, 32, 32] float pytorch tensor """
         if not imgs:
             return None
 
@@ -36,11 +36,11 @@ class ImageTransformer:
             br = img_transformed.shape[1] // 3
             img_transformed = cv2.copyMakeBorder(img_transformed, br, br, br, br,
                                                  cv2.BORDER_CONSTANT, value=border_value)
-            # Resize to 28x28 pixels
-            img_transformed = cv2.resize(img_transformed, (28, 28), interpolation=cv2.INTER_AREA)
+            # Resize to 32x32 pixels
+            img_transformed = cv2.resize(img_transformed, (32, 32), interpolation=cv2.INTER_AREA)
             img_transformed = np.array(img_transformed, dtype=np.single) / 255
             transformed_list.append(img_transformed)
 
         if self.debug:
             self.debug_img = np.concatenate(transformed_list, axis=1)
-        return torch.tensor(transformed_list).view(-1, 1, 28, 28)
+        return torch.tensor(transformed_list).view(-1, 1, 32, 32)

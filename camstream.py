@@ -2,7 +2,6 @@
 
 from threading import Thread, Lock
 import cv2
-import time
 
 
 class CamStream:
@@ -37,7 +36,7 @@ class CamStream:
                 self.mutex.acquire()
                 self.grabbed, self.frame = grabbed, frame
                 self.mutex.release()
-            cv2.waitKey(16)
+            cv2.waitKey(1)
 
     def read(self):
         self.mutex.acquire()
@@ -59,7 +58,7 @@ if __name__ == '__main__':
         grab, frame = cs.read()
         cv2.imshow(winname, frame)
 
-        if cv2.waitKey(16) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     cs.stop()
     cv2.destroyAllWindows()
